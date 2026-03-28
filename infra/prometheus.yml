@@ -1,0 +1,20 @@
+global:
+  scrape_interval:     1s   # every 1 second — required for 15s SLA
+  evaluation_interval: 1s
+
+scrape_configs:
+
+  # Container metrics from cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metric_relabel_configs:
+      # Keep only the metrics TM2/TM3 actually need — reduces noise
+      - source_labels: [__name__]
+        regex: 'container_(cpu_usage_seconds_total|memory_usage_bytes|network_receive_bytes_total|network_transmit_bytes_total|last_seen)'
+        action: keep
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

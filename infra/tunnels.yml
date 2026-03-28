@@ -1,0 +1,14 @@
+version: "2"
+tunnels:
+  loki:
+    addr: 3100
+    proto: http
+  prometheus:
+    addr: 9090
+    proto: http
+  frontend:
+    addr: 8080
+    proto: http
+  locust:
+    addr: 8089
+    proto: http

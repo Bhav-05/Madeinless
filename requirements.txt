@@ -1,0 +1,11 @@
+# Infrastructure & Metrics
+docker
+prometheus-api-client
+aiohttp
+requests
+
+# Simulation
+locust
+
+# Environment
+python-dotenv

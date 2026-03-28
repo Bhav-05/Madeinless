@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PS3</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>Website Performance Dashboard</h1>
+        </header>
+
+        <main class="grid-layout">
+            <div class="widget service-status">
+                <h3>System Health Overview</h3>
+                <div class="status-chart-container">
+                    <div class="chart-wrapper pie-chart">
+                        <canvas id="serviceStatusChart"></canvas>
+                    </div>
+                    <div id="status-ok-label" class="status-ok-label">Waiting for data...</div>
+                </div>
+                <div class="detailed-info">
+                    <div class="skeleton-loader">
+                        <div class="skel-line" style="width: 30%; height: 24px;"></div>
+                        <div class="skel-line" style="width: 100%; height: 150px;"></div>
+                        <div class="skel-line" style="width: 40%; height: 24px;"></div>
+                        <div class="skel-line" style="width: 100%; height: 200px;"></div>
+                    </div>
+                    <div class="detailed-content internal-dashboard">
+                        <div class="dashboard-left-zone">
+                            <div class="dashboard-top-row">
+                                <div class="left-panel">
+                                    <div class="inline-pie-card">
+                                        <span class="inline-pie-card-title">System Health Overview</span>
+                                        <div class="inline-pie-wrap">
+                                            <canvas id="inlinePieChart" width="120" height="120"></canvas>
+                                        </div>
+                                        <span class="inline-pie-label" id="inline-pie-label">Waiting for data...</span>
+                                    </div>
+                                </div>
+                                <div class="internal-chart-container">
+                                    <div class="internal-header">
+                                        <h4>System CPU & Memory Usage</h4>
+                                        <span>Live Metrics</span>
+                                    </div>
+                                    <div class="chart-wrapper">
+                                        <canvas id="detailedTrafficChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="internal-table-container">
+                                <div class="internal-header">
+                                    <h4>Microservices Summary</h4>
+                                    <span>Live Data</span>
+                                </div>
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>SERVICE</th>
+                                            <th>LATENCY</th>
+                                            <th>DETECTED ISSUE</th>
+                                            <th>METRIC STATE</th>
+                                            <th>AI CONFIDENCE</th>
+                                            <th>ACTION TAKEN</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="microservices-tbody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="right-panel">
+                            <div class="stat-card highlight" id="card-sla">
+                                <span class="stat-title">Recovery Time (SLA)</span>
+                                <span class="stat-date">Target: < 15.0s</span>
+                                <div class="stat-value" id="val-sla">0.00s</div>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-title">Logs Ingested / Sec</span>
+                                <span class="stat-date">Promtail to Loki</span>
+                                <div class="stat-value text-good">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-title">Active Incidents</span>
+                                <span class="stat-date">Hugging Face AI</span>
+                                <div class="stat-value text-good" id="val-anomalies">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-title">Highest Threat Score</span>
+                                <span class="stat-date">Cross-Signal Metric</span>
+                                <div class="stat-value text-good" id="val-confidence">0%</div>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-title">Auto-Recoveries</span>
+                                <span class="stat-date">Docker SDK</span>
+                                <div class="stat-value text-good" id="val-recoveries">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-title">False Positives Ignored</span>
+                                <span class="stat-date">< 90% Threshold</span>
+                                <div class="stat-value text-warn">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget telemetry-ai">
+                <h3>Resource Usage vs. Incident Detection</h3>
+                <div class="chart-wrapper">
+                    <canvas id="telemetryAiChart"></canvas>
+                </div>
+                <div class="detailed-info">
+                    <div class="skeleton-loader">
+                        <div class="skel-line" style="width: 40%; height: 28px;"></div>
+                        <div class="skel-line" style="width: 100%; height: 16px;"></div>
+                        <div class="skel-line" style="width: 80%; height: 16px;"></div>
+                    </div>
+                    <div class="detailed-content">
+                        <h3>Metric & Log Correlation</h3>
+                        <p>This chart maps hardware spikes from Prometheus directly against NLP anomaly confidence
+                            scores. A simultaneous spike triggers the automated remediation protocol instantly.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget bottleneck-radar">
+                <h3>Traffic & Bottleneck Analysis</h3>
+                <div class="chart-wrapper">
+                    <canvas id="bottleneckRadarChart"></canvas>
+                </div>
+                <div class="detailed-info">
+                    <div class="skeleton-loader">
+                        <div class="skel-line" style="width: 60%; height: 24px;"></div>
+                        <div class="skel-line" style="width: 100%; height: 250px;"></div>
+                    </div>
+                    <div class="detailed-content">
+                        <div class="radar-expanded-panel">
+                            <h4>Latency per Service</h4>
+                            <span>Per-Service Latency Distribution</span>
+                            <div class="radar-chart-wrap">
+                                <canvas id="bottleneckRadarChartExpanded"></canvas>
+                            </div>
+                        </div>
+                        <div class="bar-panel">
+                            <h4>Requests per Second (Traffic)</h4>
+                            <span>Requests per Second</span>
+                            <div class="bar-chart-wrap">
+                                <canvas id="serviceTrafficBarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget ai-log-widget">
+                <h3>Live Logs & Incident History</h3>
+                <div class="ai-log-container">
+                    <div class="terminal-window" id="live-terminal">
+                        <div class="term-line term-sys">System initialized. Awaiting log streams...</div>
+                    </div>
+                    <div class="logbook-window">
+                        <div class="internal-header">
+                            <h4>Resolution Log</h4>
+                            <span>Incident History</span>
+                        </div>
+                        <div id="incident-logbook">
+                        </div>
+                    </div>
+                </div>
+                <div class="detailed-info">
+                    <div class="skeleton-loader">
+                        <div class="skel-line" style="width: 35%; height: 24px;"></div>
+                        <div class="skel-line" style="width: 100%; height: 16px;"></div>
+                        <div class="skel-line" style="width: 90%; height: 16px;"></div>
+                    </div>
+                    <div class="detailed-content">
+                        <h3>AI Diagnostic Engine</h3>
+                        <p>The left panel streams live NLP classifications from Hugging Face. The right panel logs successful
+                            closed-loop remediations and their final SLA times.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget campaign-stats">
+                <h3>Simulate System Failures</h3>
+                <div class="test-bench-container">
+                    <button class="tb-btn tb-alert" id="btn-trigger-payment">Simulate Memory Crash (Payment)</button>
+                    <button class="tb-btn tb-warn" id="btn-trigger-checkout">Simulate Network Lag (Checkout)</button>
+                    <button class="tb-btn tb-alert" id="btn-trigger-catalog">Simulate Database Lock (Catalog)</button>
+                    <button class="tb-btn tb-warn" id="btn-trigger-cart">Simulate Sync Error (Cart)</button>
+                </div>
+                <div class="detailed-info">
+                    <div class="skeleton-loader">
+                        <div class="skel-line" style="width: 50%; height: 24px;"></div>
+                        <div class="skel-line" style="width: 100%; height: 16px;"></div>
+                        <div class="skel-line" style="width: 75%; height: 16px;"></div>
+                    </div>
+                    <div class="detailed-content">
+                        <h3>Fault Injection Active</h3>
+                        <p>Clicking the buttons above will override the live telemetry data to demonstrate the automated
+                            SRE remediation pipeline and AI anomaly detection.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

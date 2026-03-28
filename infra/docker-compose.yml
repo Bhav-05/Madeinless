@@ -1,0 +1,179 @@
+networks:
+  aiops-net:
+    driver: bridge
+
+volumes:
+  grafana-data:
+
+services:
+
+  # ─── INFRASTRUCTURE ───────────────────────────────────────────
+  redis-cart:
+    image: redis:alpine
+    container_name: redis-cart
+    networks: [aiops-net]
+
+  # ─── MICROSERVICES ────────────────────────────────────────────
+  emailservice:
+    image: gcr.io/google-samples/microservices-demo/emailservice:v0.8.0
+    container_name: emailservice
+    environment:
+      - PORT=8080
+      - DISABLE_PROFILER=1
+    networks: [aiops-net]
+
+  paymentservice:
+    image: gcr.io/google-samples/microservices-demo/paymentservice:v0.8.0
+    container_name: paymentservice
+    environment:
+      - PORT=50051
+      - DISABLE_PROFILER=1
+    networks: [aiops-net]
+
+  currencyservice:
+    image: gcr.io/google-samples/microservices-demo/currencyservice:v0.8.0
+    container_name: currencyservice
+    environment:
+      - PORT=7000
+      - DISABLE_PROFILER=1
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    networks: [aiops-net]
+
+  shippingservice:
+    image: gcr.io/google-samples/microservices-demo/shippingservice:v0.8.0
+    container_name: shippingservice
+    environment:
+      - PORT=50051
+    networks: [aiops-net]
+
+  adservice:
+    image: gcr.io/google-samples/microservices-demo/adservice:v0.8.0
+    container_name: adservice
+    environment:
+      - PORT=9555
+    networks: [aiops-net]
+
+  productcatalogservice:
+    image: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.8.0
+    container_name: productcatalogservice
+    environment:
+      - PORT=3550
+    networks: [aiops-net]
+
+  recommendationservice:
+    image: gcr.io/google-samples/microservices-demo/recommendationservice:v0.8.0
+    container_name: recommendationservice
+    environment:
+      - PORT=8080
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550
+      - DISABLE_PROFILER=1
+    networks: [aiops-net]
+
+  cartservice:
+    image: gcr.io/google-samples/microservices-demo/cartservice:v0.8.0
+    container_name: cartservice
+    environment:
+      - REDIS_ADDR=redis-cart:6379
+    deploy:
+      resources:
+        limits:
+          memory: 128M     # intentionally small → OOM chaos
+          cpus: '0.2'
+    networks: [aiops-net]
+
+  checkoutservice:
+    image: gcr.io/google-samples/microservices-demo/checkoutservice:v0.8.0
+    container_name: checkoutservice
+    environment:
+      - PORT=5050
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550
+      - SHIPPING_SERVICE_ADDR=shippingservice:50051
+      - PAYMENT_SERVICE_ADDR=paymentservice:50051
+      - EMAIL_SERVICE_ADDR=emailservice:8080
+      - CURRENCY_SERVICE_ADDR=currencyservice:7000
+      - CART_SERVICE_ADDR=cartservice:7070
+    networks: [aiops-net]
+
+  frontend:
+    image: gcr.io/google-samples/microservices-demo/frontend:v0.8.0
+    container_name: frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550
+      - CURRENCY_SERVICE_ADDR=currencyservice:7000
+      - CART_SERVICE_ADDR=cartservice:7070
+      - RECOMMENDATION_SERVICE_ADDR=recommendationservice:8080
+      - SHIPPING_SERVICE_ADDR=shippingservice:50051
+      - CHECKOUT_SERVICE_ADDR=checkoutservice:5050
+      - AD_SERVICE_ADDR=adservice:9555
+    networks: [aiops-net]
+
+  # ─── MONITORING ───────────────────────────────────────────────
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports: ["8081:8080"]
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks: [aiops-net]
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks: [aiops-net]
+
+  loki:
+    image: grafana/loki:2.9.0       # pinned version — avoids breaking schema changes
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    networks: [aiops-net]
+
+  promtail:
+    image: grafana/promtail:2.9.0   # must match loki version
+    container_name: promtail
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks: [aiops-net]
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks: [aiops-net]
+
+  # ─── LOAD GENERATOR ───────────────────────────────────────────
+  locust:
+    image: locustio/locust
+    container_name: locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --host http://frontend:8080
+    networks: [aiops-net]
