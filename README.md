@@ -1,4 +1,4 @@
-# 🛠️ Madeinless: High-Frequency Autonomous SRE Pipeline
+# 🛠️ Madeinless:  Autonomous SRE Pipeline
 
 **Sub-Second Remediation | Observability-Driven Logic | Microservices Reliability**
 
