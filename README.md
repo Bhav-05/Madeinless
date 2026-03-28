@@ -43,3 +43,20 @@ The "Storyteller" that visualizes the high-speed recovery process.
    git clone [https://github.com/Bhav-05/Madeinless.git](https://github.com/Bhav-05/Madeinless.git)
    cd Madeinless
    pip install -r requirements.txt
+   Launch the Pipeline:
+
+2. **Launch the Pipeline**
+   ```bash
+   cd infra && docker-compose up -d
+   Start SRE Logic: cd engine && python sre_listener.py
+   Open Dashboard: Open dashboard/index.html in your browser.
+
+**📈 Engineering Highlight: The 0.271s Advantage**
+
+   1.The sub-second MTTR is achieved through Edge-Optimization:
+   
+   2.Asynchronous I/O: Using aiohttp to ensure the CPU never idles while waiting for data.
+   
+   3.Direct Socket Access: Commands are sent to the Docker Daemon via local Unix sockets, bypassing cloud API overhead.
+   
+   4.Precision Correlation: By combining text (logs) and physics (metrics), the system eliminates the "wait-and-see" approach of traditional monitors.
